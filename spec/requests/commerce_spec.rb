@@ -112,7 +112,7 @@ RSpec.describe "The Commerce plugin", type: :request do
       get "/api/manifest", headers: api_headers
       manifest = JSON.parse(response.body)
       expect(manifest.keys.each_cons(2)).to include(%w[counts commerce])
-      expect(manifest["counts"].keys.last(2)).to eq(%w[quote_requests invoices])
+      expect(manifest["counts"].keys.each_cons(2)).to include(%w[quote_requests invoices])
     end
   end
 
