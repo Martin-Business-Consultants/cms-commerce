@@ -98,7 +98,7 @@ RSpec.describe "The Commerce plugin", type: :request do
       get pages_path
       groups = menu_groups
       expect(groups.index("Content")).to be < groups.index("Commerce")
-      expect(groups.index("Commerce")).to be < groups.index("Structure")
+      expect(groups.index("Commerce")).to be < groups.index("Insights")
       expect(submenu_labels("Commerce")).to eq(["Quote requests", "Invoices", "Add invoice", "Settings"])
 
       expect(Permissions.catalog.keys.each_cons(2)).to include(%w[Forms Commerce])
