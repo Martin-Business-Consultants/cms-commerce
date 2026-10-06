@@ -77,6 +77,16 @@ RSpec.describe "Api quote requests", type: :request do
     end
   end
 
+  it "tells a build where quote requests post (/api/v1/site)" do
+    switch_plugin :commerce, on: true
+    admin = create(:user)
+
+    get "/api/v1/site", headers: {"Authorization" => "Bearer #{admin.api_token.token}"}
+
+    expect(JSON.parse(response.body).dig("data", "plugin_config", "commerce", "quote_request_action"))
+      .to eq("http://example.com/api/quote_requests")
+  end
+
   describe "the inbox" do
     let!(:quote) do
       QuoteRequest.create!(customer_name: "Jane", customer_email: "jane@bakery.test",

@@ -30,7 +30,7 @@ module Commerce
         namespace :api, defaults: {format: :json} do
           # The public write path a product page posts to, then the
           # authenticated inbox and the invoices the shop sends back.
-          post    "quote_requests", to: "quote_requests#create"
+          post    "quote_requests", to: "quote_requests#create", as: :public_quote_requests
           options "quote_requests", to: "quote_requests#options"
           resources :quotes, controller: "quotes", only: [:index, :show, :create, :update, :destroy]
 
@@ -75,6 +75,12 @@ module Commerce
 
       Cms::Plugins.counts :commerce, after: [:submissions, :globals], backup: false,
         quote_requests: -> { QuoteRequest.count }, invoices: -> { Invoice.count }
+      # What /api/v1/site tells a build: where a product page's "Request a
+      # quote" posts, straight from the browser (CORS: Settings › General's
+      # public origins).
+      Cms::Plugins.provide :commerce, :site_config, -> {
+        {commerce: {quote_request_action: Rails.application.routes.url_helpers.api_public_quote_requests_url(**Site.url_options)}}
+      }
       # Where a product page posts a request, and what the shop has set up —
       # there whenever Commerce is on, so a site can wire the button unasked.
       Cms::Plugins.manifest_section :commerce, :commerce, -> {
