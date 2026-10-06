@@ -1,4 +1,4 @@
-/* Commerce: quote requests and invoices (engines/commerce). */
+/* Commerce: quote requests and invoices (cms-plugins/commerce). */
 @layer components {
   .commerce-columns {
     display: grid;

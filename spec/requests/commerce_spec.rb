@@ -2,7 +2,7 @@
 
 require "rails_helper"
 
-# The Commerce plugin (engines/commerce): the admin screens, where it sits
+# The Commerce plugin (cms-plugins/commerce): the admin screens, where it sits
 # among the core's things, and what disappears when it's off. The API is
 # covered by spec/requests/api/{quote_requests,invoices}_spec.rb, the flow by
 # spec/requests/commerce_spec.rb.
