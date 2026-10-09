@@ -1,69 +1,93 @@
 <% content_for :title, "Invoice #{@invoice.number} — #{@business}" %>
-<main class="sheet">
-  <header>
+<% eyebrow_classes = "mb-1 text-xs font-medium uppercase tracking-wider text-gray-500" %>
+<% total_label_classes = "px-3 text-right text-gray-500" %>
+<% total_value_classes = "px-3 text-right tabular-nums whitespace-nowrap text-gray-900" %>
+<% grand_total_classes = "border-t-2 border-gray-900 px-3 pt-3 text-right" %>
+<% pay_classes = "inline-flex h-11 items-center justify-center rounded-md border border-blue-600 bg-blue-600 px-6 text-base font-semibold text-on-accent hover:bg-blue-700" %>
+<% status_tone = @invoice.paid? ? :green : @invoice.void? ? :gray : :yellow %>
+<main class="invoice-sheet mx-auto my-8 max-w-3xl rounded-xl border border-gray-200 bg-white p-6 text-sm text-gray-700 shadow-surface sm:my-12 sm:p-10">
+  <header class="flex items-start justify-between gap-6">
     <div>
-      <% if @logo_url.present? %><img src="<%= @logo_url %>" alt="<%= @business %>" style="max-height:48px;max-width:180px;display:block;margin-bottom:12px;"><% end %>
-      <p class="eyebrow"><%= @business %></p>
-      <h1>Invoice <%= @invoice.number %></h1>
-      <p class="muted" style="margin:6px 0 0;">
+      <% if @logo_url.present? %><img src="<%= @logo_url %>" alt="<%= @business %>" class="mb-3 block max-h-12 w-auto max-w-xs"><% end %>
+      <p class="<%= eyebrow_classes %>"><%= @business %></p>
+      <h1 class="text-2xl font-semibold tracking-tight text-gray-900">Invoice <%= @invoice.number %></h1>
+      <p class="mt-1 text-gray-500">
         <% if @invoice.issued_on %>Issued <%= @invoice.issued_on.to_fs(:long) %><% end %>
         <% if @invoice.due_on %> · Due <%= @invoice.due_on.to_fs(:long) %><% end %>
       </p>
     </div>
-    <span class="status status-<%= @invoice.status %>"><%= @invoice.paid? ? "Paid" : @invoice.void? ? "Void" : "Due" %></span>
+    <span class="<%= ui(:badge, status_tone, class_names("uppercase tracking-wide", "line-through": @invoice.void?)) %>"><%= @invoice.paid? ? "Paid" : @invoice.void? ? "Void" : "Due" %></span>
   </header>
 
-  <div class="grid">
+  <div class="mt-8 grid grid-cols-1 gap-6 sm:grid-cols-2">
     <div>
-      <p class="eyebrow">Billed to</p>
-      <strong><%= @invoice.customer_name %></strong><br>
-      <% if @invoice.company.present? %><%= @invoice.company %><br><% end %>
-      <% if @invoice.billing_address.present? %><span style="white-space:pre-line;"><%= @invoice.billing_address %></span><br><% end %>
-      <% if @invoice.customer_email.present? %><span class="muted"><%= @invoice.customer_email %></span><br><% end %>
-      <% if @invoice.customer_phone.present? %><span class="muted"><%= @invoice.customer_phone %></span><% end %>
+      <p class="<%= eyebrow_classes %>">Billed to</p>
+      <p class="font-semibold text-gray-900"><%= @invoice.customer_name %></p>
+      <% if @invoice.company.present? %><p><%= @invoice.company %></p><% end %>
+      <% if @invoice.billing_address.present? %><p class="whitespace-pre-line"><%= @invoice.billing_address %></p><% end %>
+      <% if @invoice.customer_email.present? %><p class="text-gray-500"><%= @invoice.customer_email %></p><% end %>
+      <% if @invoice.customer_phone.present? %><p class="text-gray-500"><%= @invoice.customer_phone %></p><% end %>
     </div>
     <div>
-      <p class="eyebrow">From</p>
-      <strong><%= @business %></strong><br>
-      <% if @settings["business_address"].present? %><span class="muted" style="white-space:pre-line;"><%= @settings["business_address"] %></span><br><% end %>
-      <% if @settings["reply_to"].present? %><span class="muted"><%= @settings["reply_to"] %></span><br><% end %>
-      <% if @settings["business_phone"].present? %><span class="muted"><%= @settings["business_phone"] %></span><% end %>
+      <p class="<%= eyebrow_classes %>">From</p>
+      <p class="font-semibold text-gray-900"><%= @business %></p>
+      <% if @settings["business_address"].present? %><p class="whitespace-pre-line text-gray-500"><%= @settings["business_address"] %></p><% end %>
+      <% if @settings["reply_to"].present? %><p class="text-gray-500"><%= @settings["reply_to"] %></p><% end %>
+      <% if @settings["business_phone"].present? %><p class="text-gray-500"><%= @settings["business_phone"] %></p><% end %>
     </div>
   </div>
 
-  <table>
-    <thead>
-      <tr><th>Description</th><th class="num">Qty</th><th class="num">Unit</th><th class="num">Amount</th></tr>
-    </thead>
-    <tbody>
-      <% @invoice.line_items.each do |line| %>
+  <div class="mt-8 overflow-x-auto">
+    <table class="<%= ui(:table) %>">
+      <thead>
         <tr>
-          <td><%= line["description"] %><% if line["sku"].present? %><br><span class="muted" style="font-size:12px;">SKU <%= line["sku"] %></span><% end %></td>
-          <td class="num"><%= line["quantity"] %></td>
-          <td class="num"><%= @invoice.formatted(line["unit_price_cents"]) %></td>
-          <td class="num"><%= @invoice.formatted(line["quantity"].to_i * line["unit_price_cents"].to_i) %></td>
+          <th class="<%= ui(:th, "uppercase tracking-wide") %>">Description</th>
+          <th class="<%= ui(:th, "text-right uppercase tracking-wide") %>">Qty</th>
+          <th class="<%= ui(:th, "text-right uppercase tracking-wide") %>">Unit</th>
+          <th class="<%= ui(:th, "text-right uppercase tracking-wide") %>">Amount</th>
         </tr>
-      <% end %>
-    </tbody>
-    <tfoot>
-      <tr><td colspan="3" class="num muted">Subtotal</td><td class="num"><%= @invoice.formatted(@invoice.subtotal_cents) %></td></tr>
-      <% if @invoice.tax_cents.positive? %><tr><td colspan="3" class="num muted">Tax</td><td class="num"><%= @invoice.formatted(@invoice.tax_cents) %></td></tr><% end %>
-      <% if @invoice.shipping_cents.positive? %><tr><td colspan="3" class="num muted">Shipping</td><td class="num"><%= @invoice.formatted(@invoice.shipping_cents) %></td></tr><% end %>
-      <tr class="total"><td colspan="3" class="num">Total <span class="muted" style="font-size:12px;font-weight:400;"><%= @invoice.currency %></span></td><td class="num"><%= @invoice.formatted(@invoice.total_cents) %></td></tr>
-    </tfoot>
-  </table>
+      </thead>
+      <tbody>
+        <% @invoice.line_items.each_with_index do |line, index| %>
+          <%# herb:key index %>
+          <tr>
+            <td class="<%= ui(:td) %>">
+              <span class="text-gray-900"><%= line["description"] %></span>
+              <% if line["sku"].present? %><span class="block text-xs text-gray-500">SKU <%= line["sku"] %></span><% end %>
+            </td>
+            <td class="<%= ui(:td, "text-right tabular-nums whitespace-nowrap") %>"><%= line["quantity"] %></td>
+            <td class="<%= ui(:td, "text-right tabular-nums whitespace-nowrap") %>"><%= @invoice.formatted(line["unit_price_cents"]) %></td>
+            <td class="<%= ui(:td, "text-right tabular-nums whitespace-nowrap") %>"><%= @invoice.formatted(line["quantity"].to_i * line["unit_price_cents"].to_i) %></td>
+          </tr>
+        <% end %>
+      </tbody>
+      <tfoot>
+        <tr><td colspan="3" class="<%= total_label_classes %> pb-1.5 pt-4">Subtotal</td><td class="<%= total_value_classes %> pb-1.5 pt-4"><%= @invoice.formatted(@invoice.subtotal_cents) %></td></tr>
+        <% if @invoice.tax_cents.positive? %><tr><td colspan="3" class="<%= total_label_classes %> py-1.5">Tax</td><td class="<%= total_value_classes %> py-1.5"><%= @invoice.formatted(@invoice.tax_cents) %></td></tr><% end %>
+        <% if @invoice.shipping_cents.positive? %><tr><td colspan="3" class="<%= total_label_classes %> py-1.5">Shipping</td><td class="<%= total_value_classes %> py-1.5"><%= @invoice.formatted(@invoice.shipping_cents) %></td></tr><% end %>
+        <tr class="text-lg font-semibold text-gray-900">
+          <td colspan="3" class="<%= grand_total_classes %>">Total <span class="text-xs font-normal text-gray-500"><%= @invoice.currency %></span></td>
+          <td class="<%= grand_total_classes %> tabular-nums whitespace-nowrap"><%= @invoice.formatted(@invoice.total_cents) %></td>
+        </tr>
+      </tfoot>
+    </table>
+  </div>
 
   <% if @invoice.payment_link.present? && !@invoice.paid? && !@invoice.void? %>
-    <a class="pay" href="<%= @invoice.payment_link %>" rel="noopener">Pay <%= @invoice.formatted(@invoice.total_cents) %></a>
+    <div class="no-print">
+      <div class="mt-8 flex justify-end">
+        <a class="<%= pay_classes %>" href="<%= @invoice.payment_link %>" rel="noopener">Pay <%= @invoice.formatted(@invoice.total_cents) %></a>
+      </div>
+    </div>
   <% elsif @invoice.paid? %>
-    <p style="margin-top:24px;font-weight:600;color:#166534;">Paid<%= @invoice.paid_at ? " on #{@invoice.paid_at.to_date.to_fs(:long)}" : "" %>. Thank you.</p>
+    <p class="<%= ui(:notice, :green, "mt-8 font-medium") %>">Paid<%= @invoice.paid_at ? " on #{@invoice.paid_at.to_date.to_fs(:long)}" : "" %>. Thank you.</p>
   <% end %>
 
-  <% if @invoice.notes.present? %><div class="notes"><%= @invoice.notes %></div><% end %>
-  <% if @invoice.terms.present? %><p class="notes muted" style="font-size:12px;"><%= @invoice.terms %></p><% end %>
+  <% if @invoice.notes.present? %><p class="mt-8 whitespace-pre-line text-gray-700"><%= @invoice.notes %></p><% end %>
+  <% if @invoice.terms.present? %><p class="mt-4 whitespace-pre-line text-xs text-gray-500"><%= @invoice.terms %></p><% end %>
 
-  <footer>
-    <span class="no-print"><a href="javascript:print()" style="color:#78716c;">Print or save as PDF</a> · </span>
+  <footer class="mt-8 border-t border-gray-200 pt-4 text-xs text-gray-400">
+    <span class="no-print"><a href="javascript:print()" class="text-gray-500 underline underline-offset-2 hover:text-gray-900">Print or save as PDF</a> · </span>
     Invoice <%= @invoice.number %> · <%= @business %>
   </footer>
 </main>

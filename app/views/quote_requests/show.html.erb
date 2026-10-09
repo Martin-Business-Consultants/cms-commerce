@@ -4,7 +4,7 @@
 
 <% content_for :page_actions do %>
   <% if Current.user.can?("invoices:write") %>
-    <%= link_to "Draft an invoice", new_invoice_path(quote_request_id: @quote.id), class: "btn txt-small" %>
+    <%= link_to "Draft an invoice", new_invoice_path(quote_request_id: @quote.id), class: ui(:button) %>
   <% end %>
   <% if Current.user.can?("quotes:delete") %>
     <%= render "layouts/shared/delete_dialog", name: "quote request #" + @quote.id.to_s, path: quote_request_path(@quote),
@@ -13,95 +13,109 @@
 <% end %>
 <%= render "layouts/shared/page_header", title: @quote.customer_name, description: @page_title + " · " + @quote.source + " · received " + l(@quote.created_at, format: :long) %>
 
-<div class="commerce-columns">
-  <div class="flex flex-column gap">
-    <section class="panel shadow txt-align-start flex flex-column gap">
-      <h2 class="txt-medium font-weight-bold margin-none">Asking about</h2>
+<% field_classes = "flex flex-col gap-1.5" %>
+<% facts_classes = "divide-y divide-gray-100 border-t border-gray-200 text-sm" %>
+<% fact_classes = "flex items-baseline justify-between gap-4 px-5 py-2.5" %>
+<% fact_term_classes = "shrink-0 text-gray-500" %>
+<% fact_value_classes = "min-w-0 text-right text-gray-900" %>
+<div class="grid grid-cols-1 items-start gap-6 lg:grid-cols-3">
+  <div class="flex flex-col gap-6 lg:col-span-2">
+    <section class="<%= ui(:panel) %>">
+      <h2 class="<%= ui(:heading, "border-b border-gray-200 px-5 py-3.5") %>">Asking about</h2>
       <% if @quote.items.any? %>
-        <table class="data-table">
-          <thead><tr><th>Item</th><th>SKU</th><th class="data-table__number">Qty</th><th class="data-table__number">Listed at</th></tr></thead>
-          <tbody>
-            <% @quote.items.each_with_index do |item, index| %>
-              <%# herb:key index %>
+        <div class="overflow-x-auto">
+          <table class="data-table <%= ui(:table) %>">
+            <thead>
               <tr>
-                <td>
-                  <%= external_link item["url"], item["title"] %>
-                </td>
-                <td class="font-mono txt-small txt-subtle"><%= item["sku"] %></td>
-                <td class="data-table__number"><%= item["quantity"] %></td>
-                <td class="data-table__number"><%= item["unit_price"] %></td>
+                <th class="<%= ui(:th) %>">Item</th>
+                <th class="<%= ui(:th) %>">SKU</th>
+                <th class="<%= ui(:th, "text-right") %>">Qty</th>
+                <th class="<%= ui(:th, "text-right") %>">Listed at</th>
               </tr>
-            <% end %>
-          </tbody>
-        </table>
+            </thead>
+            <tbody>
+              <% @quote.items.each_with_index do |item, index| %>
+                <%# herb:key index %>
+                <tr>
+                  <td class="<%= ui(:td) %>"><%= external_link item["url"], item["title"] %></td>
+                  <td class="<%= ui(:td) %>"><span class="font-mono text-xs text-gray-500"><%= item["sku"] %></span></td>
+                  <td class="<%= ui(:td, "text-right tabular-nums") %>"><%= item["quantity"] %></td>
+                  <td class="<%= ui(:td, "text-right tabular-nums") %>"><%= item["unit_price"] %></td>
+                </tr>
+              <% end %>
+            </tbody>
+          </table>
+        </div>
       <% else %>
-        <p class="txt-small txt-subtle margin-none">No items — just the message.</p>
+        <p class="px-5 py-4 text-sm text-gray-500">No items — just the message.</p>
       <% end %>
       <% if @quote.message.present? %>
-        <div>
-          <h3 class="txt-small font-weight-bold margin-none">Message</h3>
-          <%= simple_format @quote.message, class: "margin-none" %>
+        <div class="space-y-1 p-5 text-sm">
+          <h3 class="font-medium text-gray-900">Message</h3>
+          <%= simple_format @quote.message, class: "text-gray-700" %>
         </div>
       <% end %>
     </section>
 
-    <section class="panel shadow txt-align-start flex flex-column gap">
-      <h2 class="txt-medium font-weight-bold margin-none">Working it</h2>
-      <%= render "layouts/shared/errors", record: @quote %>
-      <%= form_with model: @quote, scope: :quote, url: quote_request_path(@quote), method: :patch, class: "flex flex-column gap" do |form| %>
-        <%= tag.fieldset class: "settings-fieldset flex flex-column gap", disabled: !can_write do %>
-          <label class="flex flex-column gap-half">
-            <span class="txt-small font-weight-bold">Status</span>
-            <%= form.select :status, QuoteRequest::STATUSES.map { [it.humanize, it] }, {}, class: "input input--select" %>
-          </label>
-          <label class="flex flex-column gap-half">
-            <span class="txt-small font-weight-bold">Notes</span>
-            <%= form.text_area :notes, rows: 4, class: "input full-width", placeholder: "What was quoted, when you called back…" %>
-          </label>
-          <details class="commerce-details">
-            <summary class="btn txt-small">Edit the contact details</summary>
-            <div class="commerce-fields margin-block-start">
-              <label class="flex flex-column gap-half"><span class="txt-small font-weight-bold">Name</span><%= form.text_field :customer_name, class: "input full-width", required: true %></label>
-              <label class="flex flex-column gap-half"><span class="txt-small font-weight-bold">Company</span><%= form.text_field :company, class: "input full-width" %></label>
-              <label class="flex flex-column gap-half"><span class="txt-small font-weight-bold">Email</span><%= form.email_field :customer_email, class: "input full-width" %></label>
-              <label class="flex flex-column gap-half"><span class="txt-small font-weight-bold">Phone</span><%= form.telephone_field :customer_phone, class: "input full-width" %></label>
-            </div>
-          </details>
-          <% if can_write %>
-            <div><button type="submit" class="btn btn--link">Save</button></div>
+    <section class="<%= ui(:panel) %>">
+      <h2 class="<%= ui(:heading, "border-b border-gray-200 px-5 py-3.5") %>">Working it</h2>
+      <div class="p-5">
+        <%= render "layouts/shared/errors", record: @quote %>
+        <%= form_with model: @quote, scope: :quote, url: quote_request_path(@quote), method: :patch do |form| %>
+          <%= tag.fieldset class: "space-y-5", disabled: !can_write do %>
+            <label class="<%= field_classes %>">
+              <span class="<%= ui(:label) %>">Status</span>
+              <%= form.select :status, QuoteRequest::STATUSES.map { [it.humanize, it] }, {}, class: "max-w-xs" %>
+            </label>
+            <label class="<%= field_classes %>">
+              <span class="<%= ui(:label) %>">Notes</span>
+              <%= form.text_area :notes, rows: 4, class: "w-full", placeholder: "What was quoted, when you called back…" %>
+            </label>
+            <details class="space-y-4">
+              <summary class="<%= ui(:button, :small, "cursor-pointer select-none") %>">Edit the contact details</summary>
+              <div class="grid grid-cols-1 gap-5 sm:grid-cols-2">
+                <label class="<%= field_classes %>"><span class="<%= ui(:label) %>">Name</span><%= form.text_field :customer_name, class: "w-full", required: true %></label>
+                <label class="<%= field_classes %>"><span class="<%= ui(:label) %>">Company</span><%= form.text_field :company, class: "w-full" %></label>
+                <label class="<%= field_classes %>"><span class="<%= ui(:label) %>">Email</span><%= form.email_field :customer_email, class: "w-full" %></label>
+                <label class="<%= field_classes %>"><span class="<%= ui(:label) %>">Phone</span><%= form.telephone_field :customer_phone, class: "w-full" %></label>
+              </div>
+            </details>
+            <% if can_write %>
+              <div><button type="submit" class="<%= ui(:button, :primary) %>">Save</button></div>
+            <% end %>
           <% end %>
         <% end %>
-      <% end %>
+      </div>
     </section>
   </div>
 
-  <div class="flex flex-column gap">
-    <section class="panel shadow txt-align-start flex flex-column gap-half">
-      <h2 class="txt-medium font-weight-bold margin-none">Contact</h2>
-      <dl class="commerce-facts">
-        <dt>Email</dt><dd><%= @quote.customer_email.present? ? mail_to(@quote.customer_email, class: "txt-link") : "—" %></dd>
-        <dt>Phone</dt><dd><%= @quote.customer_phone.present? ? link_to(@quote.customer_phone, "tel:" + @quote.customer_phone, class: "txt-link") : "—" %></dd>
-        <dt>Company</dt><dd><%= @quote.company.presence || "—" %></dd>
-        <dt>From page</dt><dd class="overflow-ellipsis"><%= @quote.page_url.present? ? external_link(@quote.page_url) : "—" %></dd>
-        <dt>IP</dt><dd class="font-mono txt-small"><%= @quote.ip.presence || "—" %></dd>
+  <div class="flex flex-col gap-6">
+    <section class="<%= ui(:panel) %>">
+      <h2 class="<%= ui(:heading, "px-5 py-3.5") %>">Contact</h2>
+      <dl class="<%= facts_classes %>">
+        <div class="<%= fact_classes %>"><dt class="<%= fact_term_classes %>">Email</dt><dd class="<%= fact_value_classes %> truncate"><%= @quote.customer_email.present? ? mail_to(@quote.customer_email, class: ui(:link)) : "—" %></dd></div>
+        <div class="<%= fact_classes %>"><dt class="<%= fact_term_classes %>">Phone</dt><dd class="<%= fact_value_classes %>"><%= @quote.customer_phone.present? ? link_to(@quote.customer_phone, "tel:" + @quote.customer_phone, class: ui(:link)) : "—" %></dd></div>
+        <div class="<%= fact_classes %>"><dt class="<%= fact_term_classes %>">Company</dt><dd class="<%= fact_value_classes %>"><%= @quote.company.presence || "—" %></dd></div>
+        <div class="<%= fact_classes %>"><dt class="<%= fact_term_classes %>">From page</dt><dd class="<%= fact_value_classes %> truncate"><%= @quote.page_url.present? ? external_link(@quote.page_url) : "—" %></dd></div>
+        <div class="<%= fact_classes %>"><dt class="<%= fact_term_classes %>">IP</dt><dd class="<%= fact_value_classes %> font-mono text-xs"><%= @quote.ip.presence || "—" %></dd></div>
       </dl>
     </section>
 
-    <section class="panel shadow txt-align-start flex flex-column gap-half">
-      <h2 class="txt-medium font-weight-bold margin-none">Invoices</h2>
+    <section class="<%= ui(:panel) %>">
+      <h2 class="<%= ui(:heading, "px-5 py-3.5") %>">Invoices</h2>
       <% if @invoices.any? %>
-        <ul class="commerce-list">
+        <ul class="divide-y divide-gray-100 border-t border-gray-200 text-sm">
           <% @invoices.each do |invoice| %>
             <%# herb:key invoice.id %>
-            <li class="flex align-center justify-space-between gap-half">
-              <%= link_to invoice.number, invoice_path(invoice), class: "txt-link font-mono" %>
-              <span class="txt-small"><%= invoice.formatted(invoice.total_cents) %></span>
+            <li class="flex items-center justify-between gap-3 px-5 py-2.5">
+              <%= link_to invoice.number, invoice_path(invoice), class: ui(:link, "font-mono") %>
+              <span class="tabular-nums text-gray-700"><%= invoice.formatted(invoice.total_cents) %></span>
               <%= status_tag invoice.status %>
             </li>
           <% end %>
         </ul>
       <% else %>
-        <p class="txt-small txt-subtle margin-none">None yet.</p>
+        <p class="border-t border-gray-200 px-5 py-4 text-sm text-gray-500">None yet.</p>
       <% end %>
     </section>
   </div>

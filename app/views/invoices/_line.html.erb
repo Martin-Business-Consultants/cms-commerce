@@ -2,33 +2,35 @@
 <%# One invoice line, posted as invoice[line_items][<key>][…]. The schema
     editor's controller adds, removes and reorders the rows. %>
 <% name = "invoice[line_items][" + key + "]" %>
-<li class="schema-field invoice-line" data-schema-editor-target="row">
-  <label class="invoice-line__description">
-    <span class="txt-x-small font-weight-bold">Description</span>
-    <%= text_field_tag name + "[description]", line["description"], id: nil, class: "input full-width", placeholder: "What was sold",
+<% control_classes = "flex min-w-0 flex-col gap-1.5" %>
+<% control_label_classes = "text-xs font-medium text-gray-700" %>
+<li class="schema-field grid grid-cols-2 items-end gap-3 rounded-lg border border-gray-200 bg-white p-4 md:flex" data-schema-editor-target="row">
+  <label class="<%= class_names(control_classes, "col-span-2 md:flex-1") %>">
+    <span class="<%= control_label_classes %>">Description</span>
+    <%= text_field_tag name + "[description]", line["description"], id: nil, class: "w-full", placeholder: "What was sold",
           autocomplete: "off", data: { schema_editor_target: "name" } %>
   </label>
-  <label>
-    <span class="txt-x-small font-weight-bold">SKU</span>
-    <%= text_field_tag name + "[sku]", line["sku"], id: nil, class: "input full-width font-mono", autocomplete: "off" %>
+  <label class="<%= class_names(control_classes, "md:w-32") %>">
+    <span class="<%= control_label_classes %>">SKU</span>
+    <%= text_field_tag name + "[sku]", line["sku"], id: nil, class: "w-full font-mono", autocomplete: "off" %>
   </label>
-  <label>
-    <span class="txt-x-small font-weight-bold">Qty</span>
-    <%= number_field_tag name + "[quantity]", line["quantity"] || 1, id: nil, class: "input full-width", min: 1 %>
+  <label class="<%= class_names(control_classes, "md:w-20") %>">
+    <span class="<%= control_label_classes %>">Qty</span>
+    <%= number_field_tag name + "[quantity]", line["quantity"] || 1, id: nil, class: "w-full", min: 1 %>
   </label>
-  <label>
-    <span class="txt-x-small font-weight-bold">Unit price</span>
-    <%= text_field_tag name + "[unit_price]", money_input_value(line["unit_price_cents"], currency), id: nil, class: "input full-width",
+  <label class="<%= class_names(control_classes, "md:w-32") %>">
+    <span class="<%= control_label_classes %>">Unit price</span>
+    <%= text_field_tag name + "[unit_price]", money_input_value(line["unit_price_cents"], currency), id: nil, class: "w-full",
           inputmode: "decimal", autocomplete: "off", placeholder: "0.00" %>
   </label>
-  <div class="invoice-line__actions flex align-center gap-half">
-    <button type="button" class="btn btn--circle btn--plain" title="Move up" data-action="schema-editor#moveUp">
-      <%= icon_tag "arrow-up" %>
-      <span class="for-screen-reader">Move up</span>
+  <div class="flex items-center justify-end">
+    <button type="button" class="<%= ui(:button, :plain, :icon) %>" title="Move up" data-action="schema-editor#moveUp">
+      <%= icon_tag "arrow-up", class: "size-4" %>
+      <span class="sr-only">Move up</span>
     </button>
-    <button type="button" class="btn btn--circle btn--plain txt-negative" title="Remove line" data-action="schema-editor#remove">
-      <%= icon_tag "trash" %>
-      <span class="for-screen-reader">Remove line</span>
+    <button type="button" class="inline-flex size-8 items-center justify-center rounded-md text-gray-500 hover:bg-red-50 hover:text-red-700" title="Remove line" data-action="schema-editor#remove">
+      <%= icon_tag "trash", class: "size-4" %>
+      <span class="sr-only">Remove line</span>
     </button>
   </div>
 </li>
