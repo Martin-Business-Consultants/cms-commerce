@@ -22,6 +22,16 @@ RSpec.describe "The Commerce plugin", type: :request do
       sign_in_as admin
     end
 
+    it "takes a quote request's items from a plain HTML form (items[0][title]=…), in order" do
+      post "/api/quote_requests", params: {
+        customer_name: "Ann", customer_email: "ann@example.test",
+        items: {"1" => {"title" => "Ramp"}, "0" => {"title" => "Steel shed", "sku" => "SH-1", "quantity" => "2"}}
+      }
+
+      expect(response).to have_http_status(:created)
+      expect(QuoteRequest.last.items).to eq([{"title" => "Steel shed", "sku" => "SH-1", "quantity" => 2}, {"title" => "Ramp", "quantity" => 1}])
+    end
+
     it "lists quote requests and invoices in the Hotwire layout, filtered by status" do
       quote = make_quote
       make_quote(customer_name: "Lost Cause", status: "lost")

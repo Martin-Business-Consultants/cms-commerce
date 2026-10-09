@@ -75,7 +75,7 @@ class QuoteRequest < ApplicationRecord
     self.customer_email = customer_email.to_s.strip.downcase.presence
     self.customer_phone = customer_phone.to_s.strip.presence
     self.company        = company.to_s.strip.presence
-    self.items = Array(items).filter_map { |raw|
+    self.items = item_list(items).filter_map { |raw|
       next unless raw.is_a?(Hash)
 
       item = raw.stringify_keys.slice(*ITEM_KEYS)
@@ -86,6 +86,17 @@ class QuoteRequest < ApplicationRecord
       item["unit_price"] = item["unit_price"].to_s.strip.presence
       item.compact
     }
+  end
+
+  # A list of items, however they came: a JSON array, or a form's
+  # items[0][title]=…&items[1][title]=…, which arrives as a hash keyed by
+  # index — taken in index order rather than dropped.
+  def item_list(raw)
+    raw = raw.to_unsafe_h if raw.respond_to?(:to_unsafe_h)
+    return Array(raw) unless raw.is_a?(Hash)
+    return [raw] unless raw.keys.all? { it.to_s.match?(/\A\d+\z/) }
+
+    raw.sort_by { |index, _| index.to_s.to_i }.map(&:last)
   end
 
   # An email or a phone number: the shop has to be able to answer.

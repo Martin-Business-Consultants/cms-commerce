@@ -1,6 +1,9 @@
 <% @page_title = "Add New Invoice" %>
 <%= parent_page "Invoices", invoices_path %>
 
-<%= render "layouts/shared/page_header", title: @page_title,
-      description: @invoice.quote_request ? "Drafted from quote request #" + @invoice.quote_request_id.to_s + ". Nothing is sent until you send it." : "Nothing is sent until you send it." %>
+<%= render "layouts/shared/page_header", title: @page_title %>
+<%# The header shows no description, so where this draft came from is said here. %>
+<% if @invoice.quote_request %>
+  <p class="<%= ui(:help) %> mb-4">Drafted from quote request #<%= @invoice.quote_request_id %>. Nothing is sent until you send it.</p>
+<% end %>
 <%= render "invoices/form", invoice: @invoice %>
