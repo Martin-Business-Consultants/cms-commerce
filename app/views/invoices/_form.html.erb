@@ -6,31 +6,29 @@
 <%= render "layouts/shared/errors", record: invoice %>
 
 <% trash = invoice.persisted? && invoice.draft? && Current.user.can?("invoices:delete") %>
-<% field_classes = "flex flex-col gap-1.5" %>
-<% aside_classes = "font-normal text-gray-500" %>
-<%= form_with model: invoice, id: "invoice_form", class: "flex flex-col gap-6 lg:flex-row lg:items-start" do |form| %>
+<%= form_with model: invoice, id: "invoice_form", class: "editor" do |form| %>
   <%= form.hidden_field :quote_request_id %>
   <%= hidden_field_tag "invoice[lines_sent]", "1", id: nil %>
 
-  <div class="flex min-w-0 flex-1 flex-col gap-6">
-    <section class="<%= ui(:panel) %>">
-      <h2 class="<%= ui(:heading, "border-b border-gray-200 px-5 py-3.5") %>">Bill to</h2>
-      <div class="space-y-5 p-5">
-        <div class="grid grid-cols-1 gap-5 sm:grid-cols-2">
-          <label class="<%= field_classes %>"><span class="<%= ui(:label) %>">Name</span><%= form.text_field :customer_name, class: "w-full", required: true, autofocus: invoice.new_record? && invoice.customer_name.blank? %></label>
-          <label class="<%= field_classes %>"><span class="<%= ui(:label) %>">Company</span><%= form.text_field :company, class: "w-full" %></label>
-          <label class="<%= field_classes %>"><span class="<%= ui(:label) %>">Email <span class="<%= aside_classes %>">(where the invoice is sent)</span></span><%= form.email_field :customer_email, class: "w-full" %></label>
-          <label class="<%= field_classes %>"><span class="<%= ui(:label) %>">Phone</span><%= form.telephone_field :customer_phone, class: "w-full" %></label>
+  <div class="editor__main">
+    <section class="panel">
+      <h2 class="heading editor__section-title">Bill to</h2>
+      <div class="commerce-box__body">
+        <div class="grid grid--2">
+          <label class="field"><span class="label">Name</span><%= form.text_field :customer_name, required: true, autofocus: invoice.new_record? && invoice.customer_name.blank? %></label>
+          <label class="field"><span class="label">Company</span><%= form.text_field :company %></label>
+          <label class="field"><span class="label">Email <span class="label__note">(where the invoice is sent)</span></span><%= form.email_field :customer_email %></label>
+          <label class="field"><span class="label">Phone</span><%= form.telephone_field :customer_phone %></label>
         </div>
-        <label class="<%= field_classes %>"><span class="<%= ui(:label) %>">Billing address</span><%= form.text_area :billing_address, rows: 2, class: "w-full" %></label>
+        <label class="field"><span class="label">Billing address</span><%= form.text_area :billing_address, rows: 2 %></label>
       </div>
     </section>
 
-    <section class="<%= ui(:panel) %>" data-controller="schema-editor">
-      <h2 class="<%= ui(:heading, "border-b border-gray-200 px-5 py-3.5") %>">Lines</h2>
-      <div class="space-y-5 p-3 sm:p-5">
-        <div class="schema-list flex flex-col gap-3" data-prefix="invoice[line_items]">
-          <ol class="schema-list__fields flex flex-col gap-2">
+    <section class="panel" data-controller="schema-editor">
+      <h2 class="heading editor__section-title">Lines</h2>
+      <div class="commerce-box__body">
+        <div class="schema-list stack stack--md" data-prefix="invoice[line_items]">
+          <ol class="schema-list__fields stack stack--sm">
             <% lines = invoice.line_items.presence || [{ "quantity" => 1 }] %>
             <% lines.each_with_index do |line, index| %>
               <%# herb:key index %>
@@ -38,8 +36,8 @@
             <% end %>
           </ol>
           <div>
-            <button type="button" class="<%= ui(:button, :small) %>" data-action="schema-editor#add">
-              <%= icon_tag "add", class: "size-4" %>
+            <button type="button" class="btn btn--sm" data-action="schema-editor#add">
+              <%= icon_tag "add" %>
               <span>Add line</span>
             </button>
           </div>
@@ -47,19 +45,19 @@
         <template data-schema-editor-target="template">
           <%= render "invoices/line", line: { "quantity" => 1 }, currency: invoice.currency, key: "__KEY__" %>
         </template>
-        <div class="grid grid-cols-1 gap-5 sm:grid-cols-3">
-          <label class="<%= field_classes %>"><span class="<%= ui(:label) %>">Tax</span><%= text_field_tag "invoice[tax]", money_input_value(invoice.tax_cents, invoice.currency), id: "invoice_tax", class: "w-full", inputmode: "decimal", placeholder: "0.00" %></label>
-          <label class="<%= field_classes %>"><span class="<%= ui(:label) %>">Shipping</span><%= text_field_tag "invoice[shipping]", money_input_value(invoice.shipping_cents, invoice.currency), id: "invoice_shipping", class: "w-full", inputmode: "decimal", placeholder: "0.00" %></label>
-          <label class="<%= field_classes %>"><span class="<%= ui(:label) %>">Currency</span><%= form.text_field :currency, class: "w-full font-mono", maxlength: 3 %></label>
+        <div class="grid grid--3">
+          <label class="field"><span class="label">Tax</span><%= text_field_tag "invoice[tax]", money_input_value(invoice.tax_cents, invoice.currency), id: "invoice_tax", inputmode: "decimal", placeholder: "0.00" %></label>
+          <label class="field"><span class="label">Shipping</span><%= text_field_tag "invoice[shipping]", money_input_value(invoice.shipping_cents, invoice.currency), id: "invoice_shipping", inputmode: "decimal", placeholder: "0.00" %></label>
+          <label class="field"><span class="label">Currency</span><%= form.text_field :currency, class: "text-mono", maxlength: 3 %></label>
         </div>
       </div>
       <% if invoice.persisted? %>
-        <p class="rounded-b-xl border-t border-gray-200 bg-gray-50 px-5 py-2.5 text-xs text-gray-500">Total as saved: <%= invoice.formatted(invoice.total_cents) %>. Saving works it out again from the lines.</p>
+        <p class="panel__footer">Total as saved: <%= invoice.formatted(invoice.total_cents) %>. Saving works it out again from the lines.</p>
       <% end %>
     </section>
   </div>
 
-  <aside class="flex shrink-0 flex-col gap-4 lg:w-80">
+  <aside class="editor__aside">
     <% facts = [ [ "receipt", "Status", invoice.status.to_s.humanize ] ] %>
     <% facts << [ "document", "Number", invoice.number ] if invoice.number.present? %>
     <% facts << [ "chart", "Total", invoice.formatted(invoice.total_cents) ] if invoice.persisted? %>
@@ -69,17 +67,17 @@
           trash_label: "Delete draft" %>
 
     <%= postbox "invoice-terms", "Payment and terms" do %>
-      <label class="<%= field_classes %>">
-        <span class="<%= ui(:label) %>">Payment link</span>
-        <%= form.url_field :payment_link, class: "w-full", placeholder: "https://buy.stripe.com/…" %>
-        <span class="<%= ui(:help) %>">Whatever your processor issued — a Stripe payment link, a Square checkout, a PayPal.me URL. The CMS never takes the money itself.</span>
+      <label class="field">
+        <span class="label">Payment link</span>
+        <%= form.url_field :payment_link, placeholder: "https://buy.stripe.com/…" %>
+        <span class="help">Whatever your processor issued — a Stripe payment link, a Square checkout, a PayPal.me URL. The CMS never takes the money itself.</span>
       </label>
-      <div class="grid grid-cols-2 gap-3">
-        <label class="<%= field_classes %>"><span class="<%= ui(:label) %>">Issued</span><%= date_input form, :issued_on, class: "w-full" %></label>
-        <label class="<%= field_classes %>"><span class="<%= ui(:label) %>">Due</span><%= date_input form, :due_on, class: "w-full" %></label>
+      <div class="grid grid--2 grid--md">
+        <label class="field"><span class="label">Issued</span><%= date_input form, :issued_on %></label>
+        <label class="field"><span class="label">Due</span><%= date_input form, :due_on %></label>
       </div>
-      <label class="<%= field_classes %>"><span class="<%= ui(:label) %>">Notes <span class="<%= aside_classes %>">(shown to the customer)</span></span><%= form.text_area :notes, rows: 3, class: "w-full" %></label>
-      <label class="<%= field_classes %>"><span class="<%= ui(:label) %>">Terms</span><%= form.text_area :terms, rows: 3, class: "w-full" %></label>
+      <label class="field"><span class="label">Notes <span class="label__note">(shown to the customer)</span></span><%= form.text_area :notes, rows: 3 %></label>
+      <label class="field"><span class="label">Terms</span><%= form.text_area :terms, rows: 3 %></label>
     <% end %>
   </aside>
 <% end %>

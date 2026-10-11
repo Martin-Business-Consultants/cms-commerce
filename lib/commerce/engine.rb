@@ -43,8 +43,8 @@ module Commerce
     end
 
     config.to_prepare do
-      Cms::Plugins.register :commerce, name: "Commerce", version: "1.0.0", author: "Martin Business Consultants",
-        enabled_by_default: false, requires: ">= 1.0",
+      Cms::Plugins.register :commerce, name: "Commerce", version: "1.1.0", author: "Martin Business Consultants",
+        enabled_by_default: false, requires: ">= 1.30",
         description: "Selling by quotation: the “request a quote” endpoint a product page posts to, the " \
                      "quote inbox, and the invoices the shop drafts, sends and marks paid.",
         adopt_if: -> { QuoteRequest.exists? || Invoice.exists? }
