@@ -78,6 +78,7 @@ RSpec.describe "Api quote requests", type: :request do
   end
 
   it "tells a build where quote requests post (/api/v1/site)" do
+    serve_over_api
     switch_plugin :commerce, on: true
     admin = create(:user)
 

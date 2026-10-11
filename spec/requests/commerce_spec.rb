@@ -104,14 +104,15 @@ RSpec.describe "The Commerce plugin", type: :request do
       expect(flash[:notice]).to eq("2 quote requests deleted")
     end
 
-    it "puts its Menu group after Content, and its capabilities after Forms" do
+    it "puts its Menu group after Content, and its capabilities after Forms (or Globals, without Forms)" do
       get pages_path
       groups = menu_groups
       expect(groups.index("Content")).to be < groups.index("Commerce")
       expect(groups.index("Commerce")).to be < groups.index("Insights")
       expect(submenu_labels("Commerce")).to eq(["Quote requests", "Invoices", "Add invoice", "Settings"])
 
-      expect(Permissions.catalog.keys.each_cons(2)).to include(%w[Forms Commerce])
+      before = Permissions.catalog.key?("Forms") ? "Forms" : "Globals"
+      expect(Permissions.catalog.keys.each_cons(2)).to include([before, "Commerce"])
       expect(Permissions.defaults_for(:editor)).to include("invoices:send")
     end
 
